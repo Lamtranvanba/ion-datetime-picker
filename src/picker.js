@@ -5,10 +5,14 @@ angular.module("ion-datetime-picker", ["ionic"])
             require: "ngModel",
             scope: {
                 modelDate: "=ngModel",
-                title: "=",
-                subTitle: "=",
-                buttonOk: "=",
-                buttonCancel: "="
+                title: "=?",
+                subTitle: "=?",
+                buttonOk: "=?",
+                buttonCancel: "=?",
+                monthStep: "=?",
+                hourStep: "=?",
+                minuteStep: "=?",
+                secondStep: "=?"
             },
             controller: function($scope, $ionicPopup, $ionicPickerI18n, $timeout) {
                 $scope.i18n = $ionicPickerI18n;
@@ -20,7 +24,7 @@ angular.module("ion-datetime-picker", ["ionic"])
 
                 $scope.showPopup = function() {
                     $ionicPopup.show({
-                        templateUrl: "picker-popup.html",
+                        templateUrl: "lib/ion-datetime-picker/src/picker-popup.html",
                         title: $scope.title || ("Pick " + ($scope.dateEnabled ? "a date" : "") + ($scope.dateEnabled && $scope.timeEnabled ? " and " : "") + ($scope.timeEnabled ? "a time" : "")),
                         subTitle: $scope.subTitle || "",
                         scope: $scope,
@@ -53,9 +57,9 @@ angular.module("ion-datetime-picker", ["ionic"])
 
                 $scope.processModel = function() {
                     var date = $scope.modelDate instanceof Date ? $scope.modelDate : new Date();
-                    $scope.year = $scope.dateEnabled ? date.getFullYear() : 0;
-                    $scope.month = $scope.dateEnabled ? date.getMonth() : 0;
-                    $scope.day = $scope.dateEnabled ? date.getDate() : 0;
+                    $scope.year = $scope.dateEnabled || $scope.dateNumberEnabled ? date.getFullYear() : 0;
+                    $scope.month = $scope.dateEnabled || $scope.dateNumberEnabled ? date.getMonth() : 0;
+                    $scope.day = $scope.dateEnabled || $scope.dateNumberEnabled ? date.getDate() : 0;
                     $scope.hour = $scope.timeEnabled ? date.getHours() : 0;
                     $scope.minute = $scope.timeEnabled ? date.getMinutes() : 0;
                     $scope.second = $scope.secondsEnabled ? date.getSeconds() : 0;
@@ -78,10 +82,7 @@ angular.module("ion-datetime-picker", ["ionic"])
                         if ($scope.mondayFirst) {
                             $scope.firstDay = ($scope.firstDay || 7) - 1;
                         }
-                        $scope.daysInMonth = new Date($scope.year, $scope.month + 1, 0).getDate();
-                        if ($scope.day > $scope.daysInMonth) {
-                            $scope.day = $scope.daysInMonth;
-                        }
+                        $scope.daysInMonth = getDaysInMonth($scope.year, $scope.month);
                     }
 
                     if ($scope.timeEnabled) {
@@ -95,6 +96,20 @@ angular.module("ion-datetime-picker", ["ionic"])
                         $scope.bind.second = ($scope.second < 10 ? "0" : "") + $scope.second.toString();
                         $scope.bind.meridiem = $scope.meridiem;
                     }
+
+                    if($scope.dateNumberEnabled){
+                        $scope.month = date.getMonth();
+                        $scope.day = date.getDate();
+                        $scope.year = $scope.bind.year = date.getFullYear();
+
+                        $scope.bind.month = $scope.month + 1;
+                        $scope.bind.month = $scope.bind.month < 10 ? "0" + $scope.bind.month : $scope.bind.month;
+                        $scope.bind.day = $scope.day < 10 ? "0" + $scope.day : $scope.day;
+                    }
+                };
+
+                var getDaysInMonth = function(year, month) {
+                    return new Date(year, month + 1, 0).getDate();
                 };
 
                 $scope.changeBy = function(value, unit) {
@@ -107,6 +122,9 @@ angular.module("ion-datetime-picker", ["ionic"])
                             }
                         }
                         $scope[unit] += +value;
+                        if (unit === "month" || unit === "year") {
+                            $scope.day = Math.min($scope.day, getDaysInMonth($scope.year, $scope.month));
+                        }
                         changeViewData();
                     }
                 };
@@ -122,6 +140,9 @@ angular.module("ion-datetime-picker", ["ionic"])
                         changeViewData();
                     } else if (+value || value === "0") {
                         $scope[unit] = +value;
+                        if (unit === "month" || unit === "year") {
+                            $scope.day = Math.min($scope.day, getDaysInMonth($scope.year, $scope.month));
+                        }
                         changeViewData();
                     }
                 };
@@ -133,7 +154,7 @@ angular.module("ion-datetime-picker", ["ionic"])
                     changeViewData();
                 };
 
-                if ($scope.dateEnabled) {
+                if ($scope.dateEnabled || $scope.dateNumberEnabled) {
                     $scope.$watch(function() {
                         return new Date().getDate();
                     }, function() {
@@ -156,16 +177,22 @@ angular.module("ion-datetime-picker", ["ionic"])
             link: function($scope, $element, $attrs, ngModelCtrl) {
                 $scope.dateEnabled = "date" in $attrs && $attrs.date !== "false";
                 $scope.timeEnabled = "time" in $attrs && $attrs.time !== "false";
-                if ($scope.dateEnabled === false && $scope.timeEnabled === false) {
+                $scope.dateNumberEnabled = "dateNumber" in $attrs && $attrs.time !== "false";
+                if ($scope.dateEnabled === false && $scope.timeEnabled === false && $scope.dateNumberEnabled === false) {
                     $scope.dateEnabled = $scope.timeEnabled = true;
                 }
 
                 $scope.mondayFirst = "mondayFirst" in $attrs && $attrs.mondayFirst !== "false";
                 $scope.secondsEnabled = $scope.timeEnabled && "seconds" in $attrs && $attrs.seconds !== "false";
                 $scope.meridiemEnabled = $scope.timeEnabled && "amPm" in $attrs && $attrs.amPm !== "false";
+                $scope.yearsEnabled = $scope.dateNumberEnabled && "years" in $attrs && $attrs.seconds !== "false";
 
-
-
+                $scope.dayStep = +$scope.dayStep || 1;
+                $scope.monthStep = +$scope.monthStep || 1;
+                $scope.yearStep = +$scope.yearStep || 1;
+                $scope.hourStep = +$scope.hourStep || 1;
+                $scope.minuteStep = +$scope.minuteStep || 1;
+                $scope.secondStep = +$scope.secondStep || 1;
 
                 $scope.prepare();
 
