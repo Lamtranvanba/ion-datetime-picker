@@ -46,7 +46,7 @@
         <div ng-if-end class="col-20"><button type="button" class="button button-positive button-clear icon ion-chevron-up" ng-click="changeBy(+12, 'hour')"></button></div>
         <div class="col"></div>
     </div>
-    <div ng-if-end class="row time">
+    <div class="row time">
         <div class="col"></div>
         <label class="col col-20">
             <div class="item item-input">
@@ -79,6 +79,17 @@
                 </div>
             </div>
         </label>
+        <div class="col"></div>
+    </div>
+    <div ng-if-end class="row time-buttons">
+        <div class="col"></div>
+        <div class="col-20"><button type="button" class="button button-positive button-clear icon ion-chevron-down" ng-click="changeBy(-hourStep, 'hour')"></button></div>
+        <div class="col"></div>
+        <div class="col-20"><button type="button" class="button button-positive button-clear icon ion-chevron-down" ng-click="changeBy(-minuteStep, 'minute')"></button></div>
+        <div ng-if-start="secondsEnabled" class="col"></div>
+        <div ng-if-end class="col-20"><button type="button" class="button button-positive button-clear icon ion-chevron-down" ng-click="changeBy(-secondStep, 'second')"></button></div>
+        <div ng-if-start="meridiemEnabled" class="col"></div>
+        <div ng-if-end class="col-20"><button type="button" class="button button-positive button-clear icon ion-chevron-down" ng-click="changeBy(-12, 'hour')"></button></div>
         <div class="col"></div>
     </div>
     <div ng-if-start="dateNumberEnabled" class="row time-buttons">
